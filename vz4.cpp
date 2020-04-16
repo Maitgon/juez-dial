@@ -1,101 +1,58 @@
 #include <iostream>
-#include <vector>
+#include <stack>
 #include <algorithm>
+#include <vector>
+
 using namespace std;
 
-/*
-Mi estrategia para el algoritmo voraz ha sido, usar la clase intervalos, y
-ordenar el vector intervalos de forma creciente respecto su primera coordenada,
-luego tengo un bucle que me selecciona cual es el mejor candidato a ser
-la el intervalo que cubre (el bucle dentro del bucle, y el primer bucle de todos
-que uso para ver con que intervalo empiezo), lo que voy haciendo es explorar
-todos los intercambios de iz a dr y en cuanto veo alguno que me tapa menos que
-el resto paso de el, en cambio voy acumulando los que tapen mas y cuando se
-pasen de la derecha del intervalo seleccionado anteriormente pues cojo
-el que mayor cubria de esta tanda y voy a buscar el siguiente.
-
-La complejidad es O(n(log(n))) ya que el algoritmo voraz es lineal pero tenemos
-que ordenar el vector que es O(n(log(n))).
-*/
-
-typedef struct Intervalo {
-  int iz;
-  int dr;
-} Intervalo;
-
-istream &operator>>(istream &entrada, Intervalo &intervalo){
-  entrada >> intervalo.iz;
-  entrada >> intervalo.dr;
-  return entrada;
-}
-
-bool operator< (Intervalo edif1, Intervalo edif2){
-  return edif1.iz < edif2.iz;
-}
-
-int solucion (vector<Intervalo> &vec, Intervalo CF){
-  int i = 0;
-  int sol = 0;
-  int N = vec.size();
-  int i_max = 0;
-  int max_dr = CF.iz;
-  while (i < N && vec[i].iz <= CF.iz){
-    if (vec[i].dr > max_dr){
-      max_dr = vec[i].dr;
-      i_max = i;
-    }
-      i++;
-    }
-  if (vec[0].iz > CF.iz){
-      return -1;
-  }
-  Intervalo inter_max = vec[i_max];
-  i = i_max;
-  while (i < N && inter_max.dr < CF.dr){
-    while (i < N && vec[i].iz <= inter_max.dr){
-        if (vec[i].dr > max_dr){
-            max_dr = vec[i].dr;
-            i_max = i;
-        }
-        i++;
-    }
-    inter_max = vec[i_max];
-    sol++;
-    if (vec[i].iz > inter_max.dr){
-        return -1;
-    }
-  }
-  if (vec[i_max].dr < CF.dr){
-      return -1;
-  }
-  sol++;
-  return sol;
-}
-
 bool resuelveCaso() {
-  int lon;
-  Intervalo CF;
-  cin >> CF;
-  cin >> lon;
-  if (lon == 0 && CF.iz == 0 && CF.dr == 0){
-    return false;
-  }
-  vector<Intervalo> vec;
-  Intervalo elem;
-  for (int i = 0; i < lon; i++){
-    cin >> elem;
-    vec.push_back(elem);
-  }
-  sort(vec.begin(),vec.end());
-  int sol = solucion (vec, CF);
-  if (sol == -1){
-    cout << "Imposible" << "\n";
-  }
-  else {cout << sol << "\n";}
-  return true;
+	int C, F, n;
+	std::cin >> C >> F >> n;
+	if (C == 0 && F == 0 && n == 0)
+		return false;
+	int v1, v2;
+	vector <pair<int, int>> v;
+	for (int i = 0; i < n; ++i) {
+		cin >> v1 >> v2;
+		v.push_back({ v1, v2 });
+	}
+	int min = 0;
+	int fin = C;
+	sort(v.begin(), v.end());
+	bool imposible = false, salir = false;
+	stack <pair<int, int>> cu_stack;
+	int i = 0;
+	while (i < n & !imposible && !salir) {
+		if (v[i].first > fin && !cu_stack.empty()) {
+			if (cu_stack.top().first <= fin) {
+				min++;
+				fin = cu_stack.top().second;
+				cu_stack.pop();
+			}
+			else imposible = true;
+		}
+		if (fin >= F) salir = true;
+		if (v[i].first <= fin && !salir) {
+			if (cu_stack.empty() || v[i].second >= cu_stack.top().second) cu_stack.push(v[i]);
+		}
+		++i;
+	}
+	if (!cu_stack.empty() && !salir) {
+		if (cu_stack.top().first <= fin) {
+			min++;
+			fin = cu_stack.top().second;
+			cu_stack.pop();
+		}
+		else imposible = true;
+	}
+	if (fin < F) imposible = true;
+	if (imposible) cout << "Imposible\n";
+	else cout << min << '\n';
+	return true;
 }
-
 int main() {
-  while (resuelveCaso());
-  return 0;
+	cin.sync_with_stdio(false);
+	cin.tie(nullptr);
+	while (resuelveCaso());
+	return 0;
 }
